@@ -52,7 +52,7 @@ const App = () => {
         {isSpinning ? "Oluşturuluyor..." : "1000 Kutu Oluştur"}
       </button>
 
-      <div className="Case">
+      <div className="Case" style={{ "gridTemplateColumns": `repeat(${1000}, 100px)` }}>
         {boxes.map((box, i) => (
           <div
             key={i}
@@ -64,7 +64,7 @@ const App = () => {
           ></div>
         ))}
       </div>
-    </div>
+    </div >
   );
 };
 

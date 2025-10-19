@@ -2,7 +2,6 @@
     width: 800px;
     height: 120px;
     display: grid;
-    grid-template-columns: repeat(1000, 100px);
     align-items: center;
     overflow-x: hidden;
     border: 1px solid black;
