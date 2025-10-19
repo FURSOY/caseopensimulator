@@ -1,0 +1,18 @@
+.Case {
+    width: 800px;
+    height: 120px;
+    display: grid;
+    grid-template-columns: repeat(1000, 100px);
+    align-items: center;
+    overflow-x: hidden;
+    border: 1px solid black;
+    border-radius: 5px;
+    gap: 5px;
+}
+
+.CaseItem {
+    width: 100px;
+    height: 100px;
+    border-radius: 5px;
+    flex-shrink: 0;
+}
