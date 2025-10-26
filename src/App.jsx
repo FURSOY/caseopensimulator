@@ -20,10 +20,10 @@ function App() {
   };
 
   return (
-    <div className="app">
+    <>
       <nav className="navbar">
         <Link to="/">Ana Sayfa</Link>
-        {currentUser && <Link to="/inventory">Envanter</Link>} 
+        {currentUser && <Link to="/inventory">Envanter</Link>}
         {userData && userData.role === 'admin' && <Link to="/admin">Admin</Link>}
         <div className="user-info">
           {currentUser && userData ? (
@@ -41,14 +41,14 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/case/:id" element={<CasePage />} />
-          <Route path="/inventory" element={<InventoryPage />} /> 
+          <Route path="/inventory" element={<InventoryPage />} />
           <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
           <Route path="/admin/add-item" element={<ProtectedRoute><AddItemPage /></ProtectedRoute>} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
         </Routes>
       </div>
-    </div>
+    </>
   );
 }
 

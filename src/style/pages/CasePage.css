@@ -1,0 +1,101 @@
+.back-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: #333;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.spin-btn {
+    background: #2196f3;
+    color: white;
+    padding: 12px 30px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 30px;
+}
+
+.spin-btn.disabled {
+    background: #555;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.case-wrapper {
+    position: relative;
+    margin: 0 auto;
+    overflow: hidden;
+    width: 80%;
+    max-width: 600px;
+    min-height: 100px;
+    border: 3px solid #333;
+    border-radius: 10px;
+    background: #1a1a1a;
+    padding: 10px 0;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.8), inset 0 0 50px rgba(0, 0, 0, 0.9);
+}
+
+.case-reel {
+    display: flex;
+    gap: 6px;
+    padding: 0;
+}
+
+.case-item {
+    width: 100px;
+    height: 100px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    color: white;
+    flex-shrink: 0;
+    user-select: none;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5);
+    overflow: hidden; /* Taşan kısımları gizle */
+}
+
+.case-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Resmi kutuya sığdır, oranı koru */
+}
+
+.pointer {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 4px;
+    background: red;
+    transform: translateX(-50%);
+    z-index: 5;
+    box-shadow: 0 0 10px red;
+}
+
+.winner-text {
+    margin-top: 30px;
+    font-size: 24px;
+    font-weight: bold;
+    animation: fadeIn 0.5s;
+}
+
+.item-list table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.item-list th, .item-list td {
+    padding: 10px;
+    border: 1px solid #333;
+}

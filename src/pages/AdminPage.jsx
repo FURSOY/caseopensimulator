@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { collection, addDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
+import '../style/pages/AdminPage.css';
 
 function AdminPage() {
     const [caseName, setCaseName] = useState('');

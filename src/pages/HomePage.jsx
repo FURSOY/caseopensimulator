@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
+import '../style/pages/HomePage.css';
 
 function HomePage() {
   const [cases, setCases] = useState([]);
@@ -27,8 +28,8 @@ function HomePage() {
   }
 
   return (
-    <div>
-      <h1 className="title">🎁 Kasalar</h1>
+    <>
+      <h1 className="title">Kasalar</h1>
       <div className="case-grid">
         {cases.map((caseInfo) => (
           <Link to={`/case/${caseInfo.id}`} key={caseInfo.id} className="case-card-link">
@@ -52,7 +53,7 @@ function HomePage() {
           </Link>
         ))}
       </div>
-    </div>
+    </>
   );
 }
 

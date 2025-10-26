@@ -1,0 +1,48 @@
+.case-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, 250px);
+    gap: 20px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.case-card {
+    border: 2px solid;
+    border-radius: 12px;
+    padding: 30px 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.case-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+}
+
+.case-price {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.case-items {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 15px;
+}
+
+.item-tag {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.case-card-link {
+    text-decoration: none;
+    color: inherit;
+}

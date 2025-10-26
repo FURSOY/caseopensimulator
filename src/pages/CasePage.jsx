@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import CaseSpinner from '../components/CaseSpinner';
+import '../style/pages/CasePage.css';
 
 function CasePage() {
     const { id } = useParams();

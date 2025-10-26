@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, onSnapshot, query, orderBy, doc, getDoc, runTransaction, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
+import '../style/pages/InventoryPage.css';
 
 function InventoryPage() {
     const [inventory, setInventory] = useState([]);
@@ -72,7 +73,7 @@ function InventoryPage() {
     }
 
     return (
-        <div className="inventory-page container">
+        <>
             <h1>Envanter</h1>
             {inventory.length === 0 ? (
                 <p>Henüz hiç eşyanız yok.</p>
@@ -80,7 +81,7 @@ function InventoryPage() {
                 <div className="inventory-grid">
                     {inventory.map(item => (
                         <div key={item.id} className="inventory-item">
-                            <img src={item.imageURL} alt={item.name} />
+                            <img className='item-image' src={item.imageURL} alt={item.name} />
                             <div className="item-name">{item.name}</div>
                             <div className="item-price">{item.price} ₺</div>
                             <button onClick={() => sellItem(item.id, item.price)} className="sell-btn">
@@ -90,7 +91,7 @@ function InventoryPage() {
                     ))}
                 </div>
             )}
-        </div>
+        </>
     );
 }
 

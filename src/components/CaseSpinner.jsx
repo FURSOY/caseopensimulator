@@ -1,23 +1,65 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import {
+    doc,
+    getDoc,
+    updateDoc,
+    addDoc,
+    collection,
+    serverTimestamp,
+    query,
+    where,
+    getDocs,
+    writeBatch
+} from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
+import ItemPopup from './ItemPopup';
 
 const CaseSpinner = ({ caseId }) => {
     const [currentCase, setCurrentCase] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isSpinning, setIsSpinning] = useState(false);
     const [winner, setWinner] = useState(null);
+    const [pendingWinningsId, setPendingWinningsId] = useState(null);
+    const [showPopup, setShowPopup] = useState(false);
     const [feedback, setFeedback] = useState('');
     const caseRef = useRef(null);
     const wrapperRef = useRef(null);
 
-    const { currentUser, userData } = useAuth();
+    const { currentUser, userData, refreshUserData } = useAuth();
+
+    const checkForPendingWinnings = useCallback(async (user) => {
+        if (!user) return;
+        const pendingWinningsRef = collection(db, 'users', user.uid, 'pendingWinnings');
+        const q = query(pendingWinningsRef, where("caseId", "==", caseId));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            const pendingDoc = querySnapshot.docs[0];
+            const pendingData = pendingDoc.data();
+
+            const itemRef = doc(db, 'items', pendingData.itemId);
+            const itemSnap = await getDoc(itemRef);
+
+            if (itemSnap.exists()) {
+                setWinner({ ...itemSnap.data(), id: itemSnap.id });
+                setPendingWinningsId(pendingDoc.id);
+                setShowPopup(true);
+            }
+        }
+    }, [caseId]);
 
     useEffect(() => {
-        const fetchCaseData = async () => {
+        const fetchInitialData = async () => {
             if (!caseId) return;
             setLoading(true);
+
+            // Önce bekleyen bir kazanım var mı diye kontrol et
+            if (currentUser) {
+                await checkForPendingWinnings(currentUser);
+            }
+
+            // Kasa verilerini çek
             const caseDocRef = doc(db, 'cases', caseId);
             const caseDocSnap = await getDoc(caseDocRef);
 
@@ -36,8 +78,9 @@ const CaseSpinner = ({ caseId }) => {
             setLoading(false);
         };
 
-        fetchCaseData();
-    }, [caseId]);
+        fetchInitialData();
+    }, [caseId, currentUser, checkForPendingWinnings]);
+
 
     function weightedRandom(list) {
         const total = list.reduce((sum, i) => sum + i.weight, 0);
@@ -51,27 +94,97 @@ const CaseSpinner = ({ caseId }) => {
 
     const handleSpinEnd = async (selectedItem) => {
         setIsSpinning(false);
-        setWinner(selectedItem);
 
-        if (currentUser) {
-            try {
-                const inventoryCollectionRef = collection(db, 'users', currentUser.uid, 'inventory');
-                await addDoc(inventoryCollectionRef, {
-                    itemId: selectedItem.id,
-                    caseId: currentCase.id,
-                    caseName: currentCase.name,
-                    wonAt: serverTimestamp(),
-                });
-                setFeedback('Eşya envanterine eklendi!');
-            } catch (error) {
-                console.error("Envantere eklenirken hata:", error);
-                setFeedback('Eşya envantere eklenemedi.');
-            }
+        if (!currentUser) return;
+
+        try {
+            // Kazanılan eşyayı geçici koleksiyona yaz
+            const pendingWinningsRef = collection(db, 'users', currentUser.uid, 'pendingWinnings');
+            const pendingDocRef = await addDoc(pendingWinningsRef, {
+                itemId: selectedItem.id,
+                caseId: currentCase.id,
+                wonAt: serverTimestamp(),
+            });
+
+            setWinner(selectedItem);
+            setPendingWinningsId(pendingDocRef.id);
+
+            setTimeout(() => {
+                setShowPopup(true);
+            }, 500);
+
+        } catch (error) {
+            console.error("Geçici kazanım kaydedilirken hata:", error);
+            setFeedback("Bir hata oluştu, lütfen tekrar deneyin.");
         }
     };
 
+    const handleKeep = async () => {
+        if (!currentUser || !winner || !pendingWinningsId) return;
+        try {
+            const batch = writeBatch(db);
+
+            // 1. Envantere yeni döküman oluştur
+            const inventoryCollectionRef = collection(db, 'users', currentUser.uid, 'inventory');
+            const newInventoryRef = doc(inventoryCollectionRef); // Otomatik ID ile yeni ref
+            batch.set(newInventoryRef, {
+                itemId: winner.id,
+                itemName: winner.name,
+                itemImage: winner.imageURL,
+                itemPrice: winner.price,
+                caseId: currentCase.id,
+                caseName: currentCase.name,
+                wonAt: serverTimestamp(),
+            });
+
+            // 2. Geçici kazanımı sil
+            const pendingDocRef = doc(db, 'users', currentUser.uid, 'pendingWinnings', pendingWinningsId);
+            batch.delete(pendingDocRef);
+
+            await batch.commit();
+            setFeedback('Eşya envanterine eklendi!');
+
+        } catch (error) {
+            console.error("Envantere eklenirken hata:", error);
+            setFeedback('Eşya envantere eklenemedi.');
+        } finally {
+            setShowPopup(false);
+            setWinner(null);
+            setPendingWinningsId(null);
+        }
+    };
+
+    const handleSell = async () => {
+        if (!currentUser || !winner || !pendingWinningsId) return;
+        try {
+            const batch = writeBatch(db);
+
+            // 1. Kullanıcı bakiyesini güncelle
+            const userDocRef = doc(db, 'users', currentUser.uid);
+            const newBalance = (userData.balance || 0) + winner.price;
+            batch.update(userDocRef, { balance: newBalance });
+
+            // 2. Geçici kazanımı sil
+            const pendingDocRef = doc(db, 'users', currentUser.uid, 'pendingWinnings', pendingWinningsId);
+            batch.delete(pendingDocRef);
+
+            await batch.commit();
+            await refreshUserData();
+            setFeedback(`Eşya satıldı! +${winner.price} ₺`);
+
+        } catch (error) {
+            console.error("Eşya satılırken hata:", error);
+            setFeedback('Eşya satılamadı.');
+        } finally {
+            setShowPopup(false);
+            setWinner(null);
+            setPendingWinningsId(null);
+        }
+    };
+
+
     const spin = async () => {
-        if (isSpinning || !wrapperRef.current || !currentCase) return;
+        if (isSpinning || !wrapperRef.current || !currentCase || showPopup) return;
 
         if (!currentUser || !userData) {
             setFeedback('Kasa açmak için giriş yapmalısınız.');
@@ -85,12 +198,14 @@ const CaseSpinner = ({ caseId }) => {
 
         setIsSpinning(true);
         setWinner(null);
+        setShowPopup(false);
         setFeedback('');
 
         try {
             const userDocRef = doc(db, 'users', currentUser.uid);
             const newBalance = userData.balance - currentCase.price;
             await updateDoc(userDocRef, { balance: newBalance });
+            await refreshUserData();
         } catch (error) {
             console.error("Bakiye güncellenirken hata:", error);
             setFeedback('Bakiye güncellenemedi, lütfen tekrar deneyin.');
@@ -159,16 +274,20 @@ const CaseSpinner = ({ caseId }) => {
         return <div>Kasa yükleniyor...</div>;
     }
 
-    if (!currentCase) {
+    if (!currentCase && !showPopup) {
         return <div>Kasa bulunamadı!</div>;
     }
 
     return (
         <div className="app">
-            <h2 style={{ color: currentCase.color }}>{currentCase.name}</h2>
-            <div className="case-price">{currentCase.price} ₺</div>
+            {currentCase && (
+                <>
+                    <h2 style={{ color: currentCase.color }}>{currentCase.name}</h2>
+                    <div className="case-price">{currentCase.price} ₺</div>
+                </>
+            )}
 
-            <button onClick={spin} disabled={isSpinning || !currentUser} className={`spin-btn ${isSpinning ? "disabled" : ""}`}>
+            <button onClick={spin} disabled={isSpinning || !currentUser || showPopup} className={`spin-btn ${isSpinning || showPopup ? "disabled" : ""}`}>
                 {isSpinning ? "Dönüyor..." : "🎰 Kasa Aç"}
             </button>
 
@@ -179,10 +298,12 @@ const CaseSpinner = ({ caseId }) => {
                 <div className="pointer"></div>
             </div>
 
-            {winner && !isSpinning && (
-                <div className="winner-text">
-                    🎉 Kazandığın: <img src={winner.imageURL} alt={winner.name} style={{ width: '30px', verticalAlign: 'middle' }} /> {winner.name}
-                </div>
+            {showPopup && winner && (
+                <ItemPopup
+                    item={winner}
+                    onSell={handleSell}
+                    onKeep={handleKeep}
+                />
             )}
         </div>
     );
