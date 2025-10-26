@@ -7,7 +7,7 @@ function AdminPage() {
     const [caseName, setCaseName] = useState('');
     const [casePrice, setCasePrice] = useState(0);
     const [caseColor, setCaseColor] = useState('#ff9800');
-    const [items, setItems] = useState([{ itemId: '', chance: '' }]);
+    const [items, setItems] = useState([{ itemId: '', weight: '' }]);
     const [availableItems, setAvailableItems] = useState([]);
     const [feedback, setFeedback] = useState('');
 
@@ -26,7 +26,7 @@ function AdminPage() {
     };
 
     const handleAddItem = () => {
-        setItems([...items, { itemId: '', chance: '' }]);
+        setItems([...items, { itemId: '', weight: '' }]);
     };
 
     const handleRemoveItem = (index) => {
@@ -38,15 +38,15 @@ function AdminPage() {
         e.preventDefault();
         setFeedback('Kasa ekleniyor...');
 
-        if (!caseName || casePrice <= 0 || items.some(item => !item.itemId || !item.chance)) {
-            setFeedback('Lütfen tüm alanları doldurun, fiyatın 0dan büyük olduğundan ve tüm ürünlerin seçili ve şanslarının girili olduğundan emin olun.');
+        if (!caseName || casePrice <= 0 || items.some(item => !item.itemId || !item.weight)) {
+            setFeedback('Lütfen tüm alanları doldurun, fiyatın 0dan büyük olduğundan ve tüm ürünlerin seçili ve ağırlıklarının girili olduğundan emin olun.');
             return;
         }
 
         try {
             const formattedItems = items.map(item => ({
                 itemId: item.itemId,
-                chance: Number(item.chance)
+                weight: Number(item.weight)
             }));
 
             await addDoc(collection(db, 'cases'), {
@@ -100,7 +100,7 @@ function AdminPage() {
                                 </option>
                             ))}
                         </select>
-                        <input type="number" placeholder="Şans (%)" value={item.chance} onChange={(e) => handleItemChange(index, 'chance', e.target.value)} required />
+                        <input type="number" placeholder="Ağırlık" value={item.weight} onChange={(e) => handleItemChange(index, 'weight', e.target.value)} required />
                         <button type="button" onClick={() => handleRemoveItem(index)}>Sil</button>
                     </div>
                 ))}

@@ -26,7 +26,7 @@ const CaseSpinner = ({ caseId }) => {
                 const itemPromises = caseData.items.map(async (item) => {
                     const itemRef = doc(db, 'items', item.itemId);
                     const itemSnap = await getDoc(itemRef);
-                    return itemSnap.exists() ? { ...itemSnap.data(), id: itemSnap.id, chance: item.chance } : null;
+                    return itemSnap.exists() ? { ...itemSnap.data(), id: itemSnap.id, weight: item.weight } : null;
                 });
                 const items = (await Promise.all(itemPromises)).filter(Boolean);
                 setCurrentCase({ ...caseData, items });
@@ -40,11 +40,11 @@ const CaseSpinner = ({ caseId }) => {
     }, [caseId]);
 
     function weightedRandom(list) {
-        const total = list.reduce((sum, i) => sum + i.chance, 0);
+        const total = list.reduce((sum, i) => sum + i.weight, 0);
         let r = Math.random() * total;
         for (const i of list) {
-            if (r < i.chance) return i;
-            r -= i.chance;
+            if (r < i.weight) return i;
+            r -= i.weight;
         }
         return list[0];
     }

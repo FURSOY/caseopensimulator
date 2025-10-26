@@ -26,13 +26,23 @@ function CasePage() {
                         const itemRef = doc(db, 'items', item.itemId);
                         const itemSnap = await getDoc(itemRef);
                         if (itemSnap.exists()) {
-                            return { ...itemSnap.data(), chance: item.chance };
+                            return { ...itemSnap.data(), weight: item.weight };
                         }
                         return null;
                     });
 
                     const resolvedItems = (await Promise.all(itemPromises)).filter(Boolean);
-                    setItems(resolvedItems);
+
+                    // Calculate total weight
+                    const totalWeight = resolvedItems.reduce((sum, item) => sum + item.weight, 0);
+
+                    // Calculate percentage chance for each item
+                    const itemsWithChance = resolvedItems.map(item => ({
+                        ...item,
+                        percentageChance: totalWeight > 0 ? (item.weight / totalWeight) * 100 : 0
+                    }));
+
+                    setItems(itemsWithChance);
                 } else {
                     setError('Case not found.');
                 }
@@ -78,7 +88,7 @@ function CasePage() {
                                         <td><img src={item.imageURL} alt={item.name} style={{ width: '50px' }} /></td>
                                         <td>{item.name}</td>
                                         <td>{item.price} ₺</td>
-                                        <td>{item.chance}%</td>
+                                        <td>{item.percentageChance.toFixed(2)}%</td>
                                     </tr>
                                 ))}
                             </tbody>
