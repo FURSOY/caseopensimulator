@@ -69,18 +69,16 @@ function CasePage() {
         <div className="container">
             {caseData && (
                 <>
-                    <h1>{caseData.name}</h1>
-                    <p>Price: {caseData.price} ₺</p>
                     <CaseSpinner caseId={id} />
                     <div className="item-list">
-                        <h2>Possible Items</h2>
+                        <h2>Kasa İçeriği</h2>
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Image</th>
-                                    <th>Name</th>
-                                    <th>Price</th>
-                                    <th>Chance</th>
+                                    <th>Resim</th>
+                                    <th>İsim</th>
+                                    <th>Fiyat</th>
+                                    <th>Şans</th>
                                 </tr>
                             </thead>
                             <tbody>
