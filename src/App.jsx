@@ -1,107 +1,55 @@
-import { useState, useRef } from "react";
+import { Routes, Route, Link } from "react-router-dom";
 import "./style/style.css";
+import HomePage from "./pages/HomePage";
+import CasePage from "./pages/CasePage";
+import AdminPage from "./pages/AdminPage";
+import AddItemPage from "./pages/AddItemPage";
+import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
+import InventoryPage from "./pages/InventoryPage"; // Eklendi
+import { useAuth } from "./context/AuthContext";
+import { auth } from "./firebase";
+import { signOut } from "firebase/auth";
+import ProtectedRoute from "./components/ProtectedRoute";
 
-const App = () => {
-  const [boxes, setBoxes] = useState([]);
-  const [isSpinning, setIsSpinning] = useState(false);
-  const caseRef = useRef(null);
+function App() {
+  const { currentUser, userData } = useAuth();
 
-  const items = [
-    { name: "Tırnak", count: 100, color: "#4caf50" },
-    { name: "Ayak", count: 1, color: "#2196f3" },
-    { name: "Elmas", count: 99, color: "#9c27b0" },
-    { name: "Sıradan", count: 800, color: "#ff9800" },
-  ];
-
-  const shuffleArray = (array) =>
-    array
-      .map((v) => ({ v, sort: Math.random() }))
-      .sort((a, b) => a.sort - b.sort)
-      .map(({ v }) => v);
-
-  const spin = () => {
-    if (isSpinning) return;
-    setIsSpinning(true);
-
-    // Kutuları oluştur ve karıştır
-    let tempBoxes = [];
-    items.forEach((item) => {
-      for (let i = 0; i < item.count; i++) {
-        tempBoxes.push(item);
-      }
-    });
-    tempBoxes = shuffleArray(tempBoxes);
-    setBoxes(tempBoxes);
-
-    const itemWidth = 100;
-    const gap = 5;
-    const centerPosition = 400; // İmleç sol kenarı
-
-    // Kazanan index rastgele
-    const winnerIndex = Math.floor(Math.random() * tempBoxes.length);
-    const result = tempBoxes[winnerIndex];
-    console.log(`🎯 Kazanan item: ${result.name} | Index: ${winnerIndex}`);
-
-    // Ortalamak için translateX
-    const translateX = -(winnerIndex * (itemWidth + gap) - centerPosition + itemWidth / 2);
-
-    const caseElement = caseRef.current;
-    caseElement.style.transition = "none";
-    caseElement.style.transform = `translateX(0px)`;
-
-    setTimeout(() => {
-      caseElement.style.transition = "transform 1.5s ease-out";
-      caseElement.style.transform = `translateX(${translateX}px)`;
-    }, 50);
-
-    setTimeout(() => {
-      setIsSpinning(false);
-    }, 1600);
+  const handleLogout = () => {
+    signOut(auth).catch((error) => console.error("Logout Error:", error));
   };
 
   return (
-    <div style={{ padding: 20, position: "relative" }}>
-      <button onClick={spin} disabled={isSpinning}>
-        {isSpinning ? "Dönüyor..." : "Spin Başlat"}
-      </button>
-
-      <div className="CaseWrapper">
-        <div className="Case" ref={caseRef}>
-          {boxes.map((box, i) => (
-            <div
-              key={i}
-              className="CaseItem"
-              style={{
-                backgroundColor: box.color,
-                color: "#fff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontWeight: "bold",
-                fontSize: "14px",
-              }}
-              title={`${box.name} (${i})`}
-            >
-              {i}
-            </div>
-          ))}
+    <div className="app">
+      <nav className="navbar">
+        <Link to="/">Ana Sayfa</Link>
+        {currentUser && <Link to="/inventory">Envanter</Link>} 
+        {userData && userData.role === 'admin' && <Link to="/admin">Admin</Link>}
+        <div className="user-info">
+          {currentUser && userData ? (
+            <>
+              <span className="user-balance">{userData.balance} ₺</span>
+              <span>{currentUser.email}</span>
+              <button onClick={handleLogout} className="logout-btn">Çıkış Yap</button>
+            </>
+          ) : (
+            <Link to="/login">Giriş Yap</Link>
+          )}
         </div>
-
-        {/* İmleç */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 400,
-            width: 4,
-            height: 100,
-            background: "red",
-            zIndex: 10,
-          }}
-        ></div>
+      </nav>
+      <div className="content">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/case/:id" element={<CasePage />} />
+          <Route path="/inventory" element={<InventoryPage />} /> 
+          <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
+          <Route path="/admin/add-item" element={<ProtectedRoute><AddItemPage /></ProtectedRoute>} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+        </Routes>
       </div>
     </div>
   );
-};
+}
 
 export default App;
