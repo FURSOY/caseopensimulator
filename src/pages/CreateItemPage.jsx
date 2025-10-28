@@ -3,13 +3,14 @@ import { db, storage } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
-const AddItemPage = () => {
+const CreateItemPage = () => {
     const [itemName, setItemName] = useState('');
     const [itemPrice, setItemPrice] = useState(0);
     const [itemImage, setItemImage] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+
 
     const handleImageChange = (e) => {
         if (e.target.files[0]) {
@@ -20,7 +21,11 @@ const AddItemPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!itemName || itemPrice <= 0 || !itemImage) {
-            setError('Please fill in all fields and select an image.');
+            setError('Lütfen tüm alanları doldurun ve bir resim seçin.');
+            return;
+        }
+        if (itemPrice > 10000) {
+            setError('Eşya fiyatı 10000 den fazla olamaz.');
             return;
         }
         setLoading(true);
@@ -54,7 +59,7 @@ const AddItemPage = () => {
 
     return (
         <div className="container">
-            <h2>Add New Item</h2>
+            <h2>Yeni Ürün Ekle</h2>
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
                     <label>Item Name</label>
@@ -88,4 +93,4 @@ const AddItemPage = () => {
     );
 };
 
-export default AddItemPage;
+export default CreateItemPage;

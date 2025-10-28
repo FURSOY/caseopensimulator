@@ -41,7 +41,7 @@ function HomePage() {
               }}
             >
               <h2 style={{ color: caseInfo.color }}>{caseInfo.name}</h2>
-              <div className="case-price">{caseInfo.price} ₺</div>
+              <div className="case-price">{caseInfo.price.toFixed(2)} ₺</div>
               <div className="case-items">
                 {caseInfo.items.map((item, idx) => (
                   <div key={idx} className="item-tag" style={{ background: item.color }}>

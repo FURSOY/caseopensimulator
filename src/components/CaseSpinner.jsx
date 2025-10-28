@@ -25,6 +25,7 @@ const CaseSpinner = ({ caseId }) => {
     const [feedback, setFeedback] = useState('');
     const caseRef = useRef(null);
     const wrapperRef = useRef(null);
+    const spinSoundRef = useRef(new Audio('/spin_sound.mp3')); // Assuming spin_sound.mp3 is in the public folder
 
     const { currentUser, userData, refreshUserData } = useAuth();
 
@@ -94,6 +95,8 @@ const CaseSpinner = ({ caseId }) => {
 
     const handleSpinEnd = async (selectedItem) => {
         setIsSpinning(false);
+        spinSoundRef.current.pause();
+        spinSoundRef.current.currentTime = 0;
 
         if (!currentUser) return;
 
@@ -201,6 +204,9 @@ const CaseSpinner = ({ caseId }) => {
         setShowPopup(false);
         setFeedback('');
 
+        spinSoundRef.current.currentTime = 0; // Reset sound to start
+        spinSoundRef.current.play();
+
         try {
             const userDocRef = doc(db, 'users', currentUser.uid);
             const newBalance = userData.balance - currentCase.price;
@@ -283,7 +289,7 @@ const CaseSpinner = ({ caseId }) => {
             {currentCase && (
                 <>
                     <h2 style={{ color: currentCase.color }}>{currentCase.name}</h2>
-                    <div className="case-price">{currentCase.price} ₺</div>
+                    <div className="case-price">{currentCase.price.toFixed(2)} ₺</div>
                 </>
             )}
 

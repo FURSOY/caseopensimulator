@@ -5,7 +5,7 @@ import { auth } from '../firebase';
 import '../style/pages/Auth.css';
 
 function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -14,12 +14,13 @@ function LoginPage() {
     e.preventDefault();
     setError(null);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const emailForFirebase = `${username}@caseopensimulator.com`; // Construct email from username
+      await signInWithEmailAndPassword(auth, emailForFirebase, password);
       console.log('Giriş başarılı!');
       navigate('/'); // Giriş sonrası ana sayfaya yönlendir
     } catch (error) {
       console.error("Giriş sırasında hata:", error);
-      setError("Email veya şifre hatalı.");
+      setError("Kullanıcı adı veya şifre hatalı.");
     }
   };
 
@@ -29,10 +30,10 @@ function LoginPage() {
         <h2>Giriş Yap</h2>
         {error && <p className="error-message">{error}</p>}
         <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          type="text"
+          placeholder="Kullanıcı Adı"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
           required
         />
         <input

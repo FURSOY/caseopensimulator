@@ -6,7 +6,7 @@ import { auth, db } from '../firebase';
 import '../style/pages/Auth.css';
 
 function SignupPage() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -15,14 +15,15 @@ function SignupPage() {
     e.preventDefault();
     setError(null);
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const emailForFirebase = `${username}@caseopensimulator.com`; // Construct email from username
+      const userCredential = await createUserWithEmailAndPassword(auth, emailForFirebase, password);
       const user = userCredential.user;
 
       // Kullanıcı için Firestore'da bir doküman oluştur
       await setDoc(doc(db, "users", user.uid), {
         balance: 100, // Başlangıç parası
         role: "user",   // Varsayılan rol
-        email: user.email // Email bilgisini de saklayalım
+        username: username // Kullanıcı adını saklayalım
       });
 
       console.log('Kayıt başarılı ve kullanıcı verisi oluşturuldu!', user);
@@ -40,10 +41,10 @@ function SignupPage() {
         <h2>Kayıt Ol</h2>
         {error && <p className="error-message">{error}</p>}
         <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          type="text"
+          placeholder="Kullanıcı Adı"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
           required
         />
         <input
